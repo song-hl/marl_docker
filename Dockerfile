@@ -27,7 +27,7 @@ RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
 #########
 # NVTOP #
 #########
-RUN git clone https://github.com/Syllo/nvtop.git && \
+RUN git clone https://ghproxy.com/https://github.com/Syllo/nvtop.git && \
     mkdir -p nvtop/build && cd nvtop/build && \
     cmake .. -DNVIDIA_SUPPORT=ON -DAMDGPU_SUPPORT=ON && \
     make && make install
@@ -58,13 +58,13 @@ RUN ${PIP_INSTALL} -i https://mirrors.ustc.edu.cn/pypi/web/simple pip -U && \
 # zsh & tmux #
 ###################
 ENV SHELL /bin/zsh
-RUN git clone https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh && \
+RUN git clone https://ghproxy.com/https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh && \
     cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc && \
     sed -i "s/ZSH_THEME=\"robbyrussell\"/ZSH_THEME=\"ys\"/g" ~/.zshrc && \
     sed -i "s/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting tmux)/g" ~/.zshrc && \
-    git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
-    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting && \
-    git clone https://github.com/gpakosz/.tmux.git && \
+    git clone https://ghproxy.com/https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
+    git clone https://ghproxy.com/https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting && \
+    git clone https://ghproxy.com/https://github.com/gpakosz/.tmux.git && \
     ln -s -f .tmux/.tmux.conf && \
     cp .tmux/.tmux.conf.local . &&\
     /opt/conda/bin/conda init zsh &&\
@@ -88,7 +88,6 @@ RUN echo "exec zsh" >> /root/.bashrc
 RUN echo "fi" >> /root/.bashrc
 
 RUN conda update --all -y 
-RUN conda install -c conda-forge gcc=12.1.0 -y
 ###################
 # python packages #
 ####################
@@ -97,7 +96,7 @@ RUN conda install -c conda-forge -y \
     scikit-learn scikit-video \
     gym tensorboard tensorboardX pandas seaborn matplotlib
 RUN ${PIP_INSTALL} setuptools psutil wheel && \
-    ${PIP_INSTALL} scikit-image termcolor wandb hydra-core kornia git+https://github.com/oxwhirl/smac.git gfootball mujoco mujoco-py 
+    ${PIP_INSTALL} scikit-image termcolor wandb hydra-core kornia git+https://ghproxy.com/https://github.com/oxwhirl/smac.git gfootball mujoco mujoco-py 
 #############
 # MARL ENVS #
 #############
