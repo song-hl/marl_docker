@@ -10,7 +10,8 @@ RUN sed -i "s/archive.ubuntu.com/mirrors.ustc.edu.cn/g" /etc/apt/sources.list &&
     rm -rf /var/lib/apt/lists/* \
     /etc/apt/sources.list.d/cuda.list \
     /etc/apt/sources.list.d/nvidia-ml.list && \
-    apt-get update
+    apt-get update && \
+    apt-get upgrade -y
 RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
     apt-utils build-essential ca-certificates cifs-utils cmake curl dpkg-dev g++ 
 RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
@@ -26,10 +27,20 @@ RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
 #########
 # NVTOP #
 #########
-RUN git clone https://github.com/Syllo/nvtop.git && cd nvtop \
-    && mkdir build && cd build \
-    && cmake .. && make && make install \
-    && cd ../.. && rm -rf nvtop
+RUN git clone https://github.com/Syllo/nvtop.git && \
+    mkdir -p nvtop/build && cd nvtop/build && \
+    cmake .. -DNVIDIA_SUPPORT=ON -DAMDGPU_SUPPORT=ON && \
+    make && make install
+################################
+#        Install conda         #
+################################
+# ENV CONDA_VERSION=py38_4.12.0
+# RUN wget https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh && \
+#     /bin/zsh Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -b -p /opt/conda && \
+#     /opt/conda/bin/conda init zsh&& \
+#     rm Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh
+# ENV PATH /opt/conda/lib:$PATH
+# ENV PATH /opt/conda/bin:$PATH
 # ++++++++++++++++++++++++++++
 # change conda & pip sources #
 # ++++++++++++++++++++++++++++
@@ -77,12 +88,11 @@ RUN echo "exec zsh" >> /root/.bashrc
 RUN echo "fi" >> /root/.bashrc
 
 RUN conda update --all -y 
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+RUN conda install -c conda-forge gcc=12.1.0 -y
 ###################
 # python packages #
 ####################
-RUN conda install ruamel.yaml conda -y
+RUN conda install ruamel.yaml -y
 RUN conda install -c conda-forge -y \
     scikit-learn scikit-video \
     gym tensorboard tensorboardX pandas seaborn matplotlib
@@ -90,25 +100,25 @@ RUN ${PIP_INSTALL} scikit-image termcolor wandb hydra-core kornia git+https://gi
 #############
 # MARL ENVS #
 #############
-WORKDIR /marl_envs
-ADD *.tar.gz ./
-ADD *.zip ./
-# StarCraftII #
-RUN unzip -P iagreetotheeula SC2.4.10.zip && \
-    mkdir -p StarCraftII/Maps/ && \
-    unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
-    rm -rf SC2.4.10.zip && rm -rf SMAC_Maps.zip && rm -rf __MACOSX/ 
-ENV SC2PATH /marl_envs/StarCraftII
-# Bi-DexHands 
-RUN ${PIP_INSTALL} -e ./isaacgym/python
-RUN unzip IsaacGymEnvs.zip && rm -rf IsaacGymEnvs.zip && \
-    ${PIP_INSTALL} -e ./IsaacGymEnvs
-# Multi-Agent Mujoco 
-RUN mkdir -p /root/.mujoco && cp -r mujoco210 /root/.mujoco/ && rm -rf mujoco210
-RUN unzip multiagent_mujoco.zip && rm -rf multiagent_mujoco.zip && \
-    ${PIP_INSTALL} -e ./multiagent_mujoco
-ENV LD_LIBRARY_PATH /root/.mujoco/mujoco210/bin:$LD_LIBRARY_PATH
-ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libGLEW.so
+# WORKDIR /marl_envs
+# ADD *.tar.gz ./
+# ADD *.zip ./
+# # StarCraftII #
+# RUN unzip -P iagreetotheeula SC2.4.10.zip && \
+#     mkdir -p StarCraftII/Maps/ && \
+#     unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
+#     rm -rf SC2.4.10.zip && rm -rf SMAC_Maps.zip && rm -rf __MACOSX/ 
+# ENV SC2PATH /marl_envs/StarCraftII
+# # Bi-DexHands 
+# RUN ${PIP_INSTALL} -e ./isaacgym/python
+# RUN unzip IsaacGymEnvs.zip && rm -rf IsaacGymEnvs.zip && \
+#     ${PIP_INSTALL} -e ./IsaacGymEnvs
+# # Multi-Agent Mujoco 
+# RUN mkdir -p /root/.mujoco && cp -r mujoco210 /root/.mujoco/ && rm -rf mujoco210
+# RUN unzip multiagent_mujoco.zip && rm -rf multiagent_mujoco.zip && \
+#     ${PIP_INSTALL} -e ./multiagent_mujoco
+# ENV LD_LIBRARY_PATH /root/.mujoco/mujoco210/bin:$LD_LIBRARY_PATH
+# ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libGLEW.so
 # # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ##################
