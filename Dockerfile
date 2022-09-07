@@ -96,7 +96,8 @@ RUN conda install -c conda-forge -y \
     scikit-learn scikit-video \
     gym tensorboard tensorboardX pandas seaborn matplotlib
 RUN ${PIP_INSTALL} setuptools psutil wheel && \
-    ${PIP_INSTALL} scikit-image termcolor wandb hydra-core kornia git+https://ghproxy.com/https://github.com/oxwhirl/smac.git gfootball mujoco mujoco-py 
+    ${PIP_INSTALL} scikit-image termcolor wandb hydra-core kornia  \
+    git+https://ghproxy.com/https://github.com/oxwhirl/smac.git gfootball mujoco mujoco-py 
 #############
 # MARL ENVS #
 #############
@@ -109,16 +110,21 @@ RUN unzip -P iagreetotheeula SC2.4.10.zip && \
     unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
     rm -rf SC2.4.10.zip && rm -rf SMAC_Maps.zip && rm -rf __MACOSX/ 
 ENV SC2PATH /marl_envs/StarCraftII
-# Bi-DexHands 
+# isaacgym
 RUN ${PIP_INSTALL} -e ./isaacgym/python
 RUN unzip IsaacGymEnvs.zip && rm -rf IsaacGymEnvs.zip && \
     ${PIP_INSTALL} -e ./IsaacGymEnvs
-# Multi-Agent Mujoco 
+# Mujoco 
 RUN mkdir -p /root/.mujoco && cp -r mujoco210 /root/.mujoco/ && rm -rf mujoco210
+# Multi-Agent Mujoco 
 RUN unzip multiagent_mujoco.zip && rm -rf multiagent_mujoco.zip && \
-    ${PIP_INSTALL} -e ./multiagent_mujoco
+    ${PIP_INSTALL} -e ./multiagent_mujoco && \
+    ${PIP_INSTALL} gym==0.21.0
 ENV LD_LIBRARY_PATH /root/.mujoco/mujoco210/bin:$LD_LIBRARY_PATH
 ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libGLEW.so
+# DexterousHands
+RUN unzip DexterousHands.zip && rm -rf DexterousHands.zip && \
+    ${PIP_INSTALL} -e ./DexterousHands
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ##################
