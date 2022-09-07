@@ -126,6 +126,8 @@ ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libGLEW.so
 # DexterousHands
 RUN unzip DexterousHands.zip && rm -rf DexterousHands.zip && \
     ${PIP_INSTALL} -e ./DexterousHands
+# gcc
+RUN conda install -c conda-forge -y gcc=12.1.0
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ##################
