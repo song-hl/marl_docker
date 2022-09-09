@@ -62,7 +62,7 @@ RUN cd /root && \
     git clone https://ghproxy.com/https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh && \
     cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc && \
     sed -i "s/ZSH_THEME=\"robbyrussell\"/ZSH_THEME=\"ys\"/g" ~/.zshrc && \
-    sed -i "s/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting tmux)/g" ~/.zshrc && \
+    sed -i "s/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting tmux z extract sudo)/g" ~/.zshrc && \
     git clone https://ghproxy.com/https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
     git clone https://ghproxy.com/https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting && \
     git clone https://ghproxy.com/https://github.com/gpakosz/.tmux.git && \
@@ -128,6 +128,9 @@ RUN unzip DexterousHands.zip && rm -rf DexterousHands.zip && \
     ${PIP_INSTALL} -e ./DexterousHands
 # gcc
 RUN conda install -c conda-forge -y gcc=12.1.0
+# fix tensorboard
+RUN pip uninstall tb-nightly tensorboard tensorflow tensorflow-estimator tf-estimator-nightly tf-nightly -y && \
+    ${PIP_INSTALL} tensorflow
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ##################
