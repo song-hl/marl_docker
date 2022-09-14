@@ -58,7 +58,9 @@ RUN ${PIP_INSTALL} -i https://mirrors.ustc.edu.cn/pypi/web/simple pip -U && \
 ARG user=tky
 ARG userid=1636
 RUN chsh -s /bin/zsh && \
-    useradd --create-home --no-log-init --shell /bin/zsh ${user} 
+    useradd --create-home --no-log-init --shell /bin/zsh ${user} && \
+    adduser ${user} sudo && \
+    echo "${user}:123456" | chpasswd
 RUN usermod -u ${userid} ${user} && groupmod -g ${userid} ${user}
 WORKDIR /home/${user}
 USER ${user}
@@ -92,6 +94,12 @@ RUN echo "exec zsh" >> /root/.bashrc
 RUN echo "fi" >> /root/.bashrc
 
 RUN conda update --all -y 
+###############################
+# gcc libstdc++.so.6 update   #
+###############################
+RUN conda install -c conda-forge gcc=12.1.0 && \
+    rm -rf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 && \
+    cp /opt/conda/lib/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ###################
