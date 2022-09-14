@@ -89,6 +89,12 @@ RUN echo "exec zsh" >> /root/.bashrc
 RUN echo "fi" >> /root/.bashrc
 
 RUN conda update --all -y 
+###############################
+# gcc libstdc++.so.6 update   #
+###############################
+RUN conda install -c conda-forge gcc=12.1.0 && \
+    rm -rf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 && \
+    cp /opt/conda/lib/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/
 # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ###################
