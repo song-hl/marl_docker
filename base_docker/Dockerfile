@@ -101,7 +101,12 @@ RUN conda update --all -y
 RUN conda install ruamel.yaml -y
 RUN ${PIP_INSTALL} setuptools psutil wheel 
 
-
+################################
+#    gcc  GLIBCXX_3.4.30       #
+################################
+RUN conda install libstdcxx-ng=12.1.0 && \
+    rm -rf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 && \
+    ln -s /opt/conda/lib/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/libstdc++.so.6
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

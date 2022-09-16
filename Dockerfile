@@ -146,7 +146,12 @@ RUN pip uninstall tb-nightly tensorboard tensorflow \
     tensorflow-estimator tf-estimator-nightly tf-nightly -y && \
     ${PIP_INSTALL} tensorflow
 
-
+################################
+#    gcc  GLIBCXX_3.4.30       #
+################################
+RUN conda install libstdcxx-ng=12.1.0 && \
+    rm -rf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 && \
+    ln -s /opt/conda/lib/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/libstdc++.so.6
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
