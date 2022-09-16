@@ -111,30 +111,6 @@ RUN conda install libstdcxx-ng=12.1.0 && \
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ################################
-#   zsh Theme powerlevel10k    #
-################################
-
-#             fonts            #
-# RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL ttf-mscorefonts-installer
-# RUN mkdir /usr/share/fonts/zshfont && \
-#     cd /usr/share/fonts/zshfont && \
-#     wget https://ghproxy.com/https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf && \
-#     wget https://ghproxy.com/https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf && \
-#     wget https://ghproxy.com/https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf && \
-#     wget https://ghproxy.com/https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf && \
-#     chmod 755 ./*.ttf && \
-#     mkfontscale && mkfontdir && fc-cache -fv 
-
-#            theme             #
-RUN git clone --depth=1 https://gitee.com/romkatv/powerlevel10k.git ~/powerlevel10k && \
-    echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
-
-# can also set the TERM and COLORTERM when run docker with "docker run -e TERM -e COLORTERM -e LC_ALL=C.UTF-8 ${tag}"
-ENV LC_ALL=C.UTF-8 \
-    COLORTERM=truecolor \
-    TERM=xterm-256color
-
-################################
 #        Apt auto clean        #
 ################################
 RUN ldconfig && \
