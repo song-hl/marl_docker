@@ -24,13 +24,15 @@ RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
     libboost-all-dev libdirectfb-dev libevent-dev libgl1-mesa-dev libgl1-mesa-glx libglew-dev libglfw3 \
     libglib2.0-0 libncurses5-dev libncursesw5-dev libopenmpi-dev libosmesa6-dev libsdl2-dev libsdl2-gfx-dev \ 
     libsdl2-image-dev libsdl2-ttf-dev libsm6 libst-dev libxext6 libxrender-dev 
-#########
-# NVTOP #
-#########
+
+################################
+#            NVTOP             #
+################################
 RUN git clone https://ghproxy.com/https://github.com/Syllo/nvtop.git && \
     mkdir -p nvtop/build && cd nvtop/build && \
     cmake .. -DNVIDIA_SUPPORT=ON -DAMDGPU_SUPPORT=ON && \
     make && make install
+
 ################################
 #        Install conda         #
 ################################
@@ -39,11 +41,11 @@ RUN git clone https://ghproxy.com/https://github.com/Syllo/nvtop.git && \
 #     /bin/zsh Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -b -p /opt/conda && \
 #     /opt/conda/bin/conda init zsh&& \
 #     rm Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh
-# ENV PATH /opt/conda/lib:$PATH
 # ENV PATH /opt/conda/bin:$PATH
-# ++++++++++++++++++++++++++++
-# change conda & pip sources #
-# ++++++++++++++++++++++++++++
+
+################################
+#  change conda & pip sources  #
+################################
 RUN conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/conda-forge/ && \
     conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/main/ && \
     conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/free/ && \
@@ -54,9 +56,10 @@ RUN conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/conda
 
 RUN ${PIP_INSTALL} -i https://mirrors.ustc.edu.cn/pypi/web/simple pip -U && \
     pip config set global.index-url https://mirrors.ustc.edu.cn/pypi/web/simple
-###################
-# zsh & tmux #
-###################
+
+################################
+#           zsh & tmux         #
+################################
 ENV SHELL /bin/zsh
 RUN cd /root && \
     git clone https://ghproxy.com/https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh && \
@@ -70,9 +73,10 @@ RUN cd /root && \
     cp .tmux/.tmux.conf.local . &&\
     /opt/conda/bin/conda init zsh &&\
     chsh -s /bin/zsh 
-################
-# Set Timezone #
-################
+
+################################
+#        Set Timezone          #
+################################
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     locale-gen en_US.UTF-8 && \
     dpkg-reconfigure --frontend=noninteractive locales && \
@@ -81,32 +85,59 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     rm -f /etc/localtime && \
     rm -rf /usr/share/zoneinfo/UTC && \
     dpkg-reconfigure --frontend=noninteractive tzdata
-#################
-#   Set Shell    # 
-#################
+
+################################
+#            Set Shell         # 
+################################
 RUN echo "if [ -t 1 ]; then" >> /root/.bashrc
 RUN echo "exec zsh" >> /root/.bashrc
 RUN echo "fi" >> /root/.bashrc
-
 RUN conda update --all -y 
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-###################
-# python packages #
-####################
-# RUN conda install 
-# RUN ${PIP_INSTALL} -r requirements.txt
+################################
+#        python packages       #
+################################
+RUN conda install ruamel.yaml -y
+RUN ${PIP_INSTALL} setuptools psutil wheel 
 
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-##################
-# Apt auto clean #
-##################
+
+# ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+################################
+#   zsh Theme powerlevel10k    #
+################################
+
+#             fonts            #
+# RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL ttf-mscorefonts-installer
+# RUN mkdir /usr/share/fonts/zshfont && \
+#     cd /usr/share/fonts/zshfont && \
+#     wget https://ghproxy.com/https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf && \
+#     wget https://ghproxy.com/https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf && \
+#     wget https://ghproxy.com/https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf && \
+#     wget https://ghproxy.com/https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf && \
+#     chmod 755 ./*.ttf && \
+#     mkfontscale && mkfontdir && fc-cache -fv 
+
+#            theme             #
+RUN git clone --depth=1 https://gitee.com/romkatv/powerlevel10k.git ~/powerlevel10k && \
+    echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
+
+# can also set the TERM and COLORTERM when run docker with "docker run -e TERM -e COLORTERM -e LC_ALL=C.UTF-8 ${tag}"
+ENV LC_ALL=C.UTF-8 \
+    COLORTERM=truecolor \
+    TERM=xterm-256color
+
+################################
+#        Apt auto clean        #
+################################
 RUN ldconfig && \
     conda clean -y -all && \
     apt-get clean && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache/pip
-WORKDIR /home
+
+WORKDIR /workspace
 EXPOSE 6006
 ENTRYPOINT ["zsh"]
