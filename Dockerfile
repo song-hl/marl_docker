@@ -37,10 +37,10 @@ RUN git clone https://ghproxy.com/https://github.com/Syllo/nvtop.git && \
 #        Install conda         #
 ################################
 # ENV CONDA_VERSION=py38_4.12.0
-# RUN wget https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh && \
-#     /bin/zsh Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -b -p /opt/conda && \
+# RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py38_4.12.0-Linux-x86_64.sh && \
+#     /bin/zsh Miniconda3-py38_4.12.0-Linux-x86_64.sh -b -p /opt/conda && \
 #     /opt/conda/bin/conda init zsh&& \
-#     rm Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh
+#     rm Miniconda3-py38_4.12.0-Linux-x86_64.sh
 # ENV PATH /opt/conda/bin:$PATH
 
 ################################
@@ -57,22 +57,6 @@ RUN conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/conda
 RUN ${PIP_INSTALL} -i https://mirrors.ustc.edu.cn/pypi/web/simple pip -U && \
     pip config set global.index-url https://mirrors.ustc.edu.cn/pypi/web/simple
 
-################################
-#           zsh & tmux         #
-################################
-ENV SHELL /bin/zsh
-RUN cd /root && \
-    git clone https://ghproxy.com/https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh && \
-    cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc && \
-    sed -i "s/ZSH_THEME=\"robbyrussell\"/ZSH_THEME=\"ys\"/g" ~/.zshrc && \
-    sed -i "s/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting tmux z extract sudo)/g" ~/.zshrc && \
-    git clone https://ghproxy.com/https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
-    git clone https://ghproxy.com/https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting && \
-    git clone https://ghproxy.com/https://github.com/gpakosz/.tmux.git && \
-    ln -s -f .tmux/.tmux.conf && \
-    cp .tmux/.tmux.conf.local . &&\
-    /opt/conda/bin/conda init zsh &&\
-    chsh -s /bin/zsh 
 
 ################################
 #        Set Timezone          #
@@ -86,14 +70,14 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     rm -rf /usr/share/zoneinfo/UTC && \
     dpkg-reconfigure --frontend=noninteractive tzdata
 
-################################
-#            Set Shell         # 
-################################
-RUN echo "if [ -t 1 ]; then" >> /root/.bashrc
-RUN echo "exec zsh" >> /root/.bashrc
-RUN echo "fi" >> /root/.bashrc
-RUN conda update --all -y 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+################################
+#    gcc  GLIBCXX_3.4.30       #
+################################
+RUN conda install libstdcxx-ng=12.1.0 && \
+    rm -rf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 && \
+    ln -s /opt/conda/lib/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/libstdc++.so.6
 
 ################################
 #        python packages       #
@@ -146,38 +130,18 @@ RUN pip uninstall tb-nightly tensorboard tensorflow \
     tensorflow-estimator tf-estimator-nightly tf-nightly -y && \
     ${PIP_INSTALL} tensorflow
 
-################################
-#    gcc  GLIBCXX_3.4.30       #
-################################
-RUN conda install libstdcxx-ng=12.1.0 && \
-    rm -rf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 && \
-    ln -s /opt/conda/lib/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+RUN ${PIP_INSTALL} dm_control && \
+    ${PIP_INSTALL} protobuf==3.19.4
+
+
+RUN python -c "import mujoco_py" && \
+    python -c "import gym" && \
+    python -c "import smac" && \
+    python -c "import isaacgym" && \
+    python -c "import multiagent_mujoco" && \
+    python -c "import DexterousHands"
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-################################
-#   zsh Theme powerlevel10k    #
-################################
-
-#             fonts            #
-# RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL ttf-mscorefonts-installer
-# RUN mkdir /usr/share/fonts/zshfont && \
-#     cd /usr/share/fonts/zshfont && \
-#     wget https://ghproxy.com/https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf && \
-#     wget https://ghproxy.com/https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf && \
-#     wget https://ghproxy.com/https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf && \
-#     wget https://ghproxy.com/https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf && \
-#     chmod 755 ./*.ttf && \
-#     mkfontscale && mkfontdir && fc-cache -fv 
-
-#            theme             #
-RUN git clone --depth=1 https://gitee.com/romkatv/powerlevel10k.git ~/powerlevel10k && \
-    echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
-
-# can also set the TERM and COLORTERM when run docker with "docker run -e TERM -e COLORTERM -e LC_ALL=C.UTF-8 ${tag}"
-ENV LC_ALL=C.UTF-8 \
-    COLORTERM=truecolor \
-    TERM=xterm-256color
 
 ################################
 #        Apt auto clean        #
@@ -188,6 +152,52 @@ RUN ldconfig && \
     apt-get autoremove && \
     rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache/pip
 
-WORKDIR /workspace
+################################
+#           add user           #
+################################
+# ARG user=docker
+# ARG userid=1000
+# RUN chsh -s /bin/zsh && \
+#     useradd --create-home --no-log-init --shell /bin/zsh ${user} && \
+#     adduser ${user} sudo && \
+#     echo "${user}:123456" | chpasswd
+# RUN usermod -u ${userid} ${user} && groupmod -g ${userid} ${user}
+# WORKDIR /home/${user}
+# USER ${user}
+
+################################
+#           zsh & tmux         #
+################################
+RUN cd ~ && \
+    git clone https://ghproxy.com/https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh && \
+    cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc && \
+    sed -i "s/ZSH_THEME=\"robbyrussell\"/ZSH_THEME=\"ys\"/g" ~/.zshrc && \
+    sed -i "s/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting tmux z extract sudo)/g" ~/.zshrc && \
+    git clone https://ghproxy.com/https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
+    git clone https://ghproxy.com/https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting && \
+    git clone https://ghproxy.com/https://github.com/gpakosz/.tmux.git ~/.tmux&& \
+    ln -s -f .tmux/.tmux.conf && \
+    cp .tmux/.tmux.conf.local . &&\
+    /opt/conda/bin/conda init zsh
+
+################################
+#            Set Shell         # 
+################################
+RUN echo "if [ -t 1 ]; then" >> ~/.bashrc
+RUN echo "exec zsh" >> ~/.bashrc
+RUN echo "fi" >> ~/.bashrc
+
+################################
+#   zsh Theme powerlevel10k    #
+################################
+RUN git clone --depth=1 https://gitee.com/romkatv/powerlevel10k.git ~/powerlevel10k && \
+    echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
+# may need to install fonts to support full use of powerlevel10k,follow the link below
+# https://github.com/romkatv/powerlevel10k#meslo-nerd-font-patched-for-powerlevel10k
+# can also set the TERM and COLORTERM when run docker with "docker run -e TERM -e COLORTERM -e LC_ALL=C.UTF-8 ${tag}"
+ENV LC_ALL=C.UTF-8 \
+    COLORTERM=truecolor \
+    TERM=xterm-256color
+
 EXPOSE 6006
-ENTRYPOINT ["zsh"]
+WORKDIR /home
