@@ -198,6 +198,21 @@ RUN git clone --depth=1 https://gitee.com/romkatv/powerlevel10k.git ~/powerlevel
 ENV LC_ALL=C.UTF-8 \
     COLORTERM=truecolor \
     TERM=xterm-256color
+################################
+#           open ssh           #
+################################
+COPY ./id_rsa.docker.pub /root/.ssh/authorized_keys
+RUN 
+RUN chmod 600 /root/.ssh/authorized_keys && \
+    service ssh start && \
+    sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/g" /etc/ssh/sshd_config && \
+    sed -i "s/UsePAM yes/UsePAM no/g" /etc/ssh/sshd_config && \
+    sed -i "s/#PermitEmptyPasswords no/PermitEmptyPasswords yes/g" /etc/ssh/sshd_config && \
+    sed -i "s/#PasswordAuthentication yes/PasswordAuthentication yes/g" /etc/ssh/sshd_config && \
+    sed -i "s/#Port 22/Port 11958/g" /etc/ssh/sshd_config && \
+    service ssh restart && \
+    echo "root:123456" | chpasswd
+ENTRYPOINT service ssh start && /bin/zsh
 
 EXPOSE 6006
 WORKDIR /home
