@@ -1,4 +1,4 @@
-FROM hlsong/pytorch:1.12.0-py3.8-cuda11.3.1-runtime-ubuntu20.04
+FROM hlsong/pytorch:1.11.0-py3.8-cuda11.3.1-devel-ubuntu20.04
 ################################
 # Install apt-get Requirements #
 ################################
@@ -77,7 +77,8 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
 ################################
 RUN conda install libstdcxx-ng=12.1.0 && \
     rm -rf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 && \
-    ln -s /opt/conda/lib/libstdc++.so.6 /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+    cp /opt/conda/lib/libstdc++.so.6.0.30 /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30 && \
+    ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30 /usr/lib/x86_64-linux-gnu/libstdc++.so.6
 
 ################################
 #        python packages       #
@@ -130,16 +131,15 @@ RUN pip uninstall tb-nightly tensorboard tensorflow \
     tensorflow-estimator tf-estimator-nightly tf-nightly -y && \
     ${PIP_INSTALL} tensorflow
 
-RUN ${PIP_INSTALL} dm_control && \
+# dm_control
+RUN ${PIP_INSTALL} dm_control atari-py dmc2gym&& \
     ${PIP_INSTALL} protobuf==3.19.4
-
 
 RUN python -c "import mujoco_py" && \
     python -c "import gym" && \
     python -c "import smac" && \
     python -c "import isaacgym" && \
-    python -c "import multiagent_mujoco" && \
-    python -c "import DexterousHands"
+    python -c "import multiagent_mujoco"
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -169,13 +169,13 @@ RUN ldconfig && \
 #           zsh & tmux         #
 ################################
 RUN cd ~ && \
-    git clone https://ghproxy.com/https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh && \
+    git clone https://github.91chi.fun/https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh && \
     cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc && \
     sed -i "s/ZSH_THEME=\"robbyrussell\"/ZSH_THEME=\"ys\"/g" ~/.zshrc && \
     sed -i "s/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting tmux z extract sudo)/g" ~/.zshrc && \
-    git clone https://ghproxy.com/https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
-    git clone https://ghproxy.com/https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting && \
-    git clone https://ghproxy.com/https://github.com/gpakosz/.tmux.git ~/.tmux&& \
+    git clone https://github.91chi.fun/https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
+    git clone https://github.91chi.fun/https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting && \
+    git clone https://github.91chi.fun/https://github.com/gpakosz/.tmux.git ~/.tmux&& \
     ln -s -f .tmux/.tmux.conf && \
     cp .tmux/.tmux.conf.local . &&\
     /opt/conda/bin/conda init zsh
@@ -183,6 +183,7 @@ RUN cd ~ && \
 ################################
 #            Set Shell         # 
 ################################
+ENV SHELL /bin/zsh
 RUN echo "if [ -t 1 ]; then" >> ~/.bashrc
 RUN echo "exec zsh" >> ~/.bashrc
 RUN echo "fi" >> ~/.bashrc
@@ -202,7 +203,6 @@ ENV LC_ALL=C.UTF-8 \
 #           open ssh           #
 ################################
 COPY ./id_rsa.docker.pub /root/.ssh/authorized_keys
-RUN 
 RUN chmod 600 /root/.ssh/authorized_keys && \
     service ssh start && \
     sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/g" /etc/ssh/sshd_config && \
@@ -212,7 +212,11 @@ RUN chmod 600 /root/.ssh/authorized_keys && \
     sed -i "s/#Port 22/Port 11958/g" /etc/ssh/sshd_config && \
     service ssh restart && \
     echo "root:123456" | chpasswd
+# add env for ssh conect
+RUN sed -i '$a\export $(cat /proc/1/environ |tr "\\0" "\\n" | grep -E "SHELL|LD_LIBRARY_PATH|LD_PRELOAD|SC2PATH|LC_ALL|LANG"  | xargs)' ~/.zshrc
+
 ENTRYPOINT service ssh start && /bin/zsh
+
 
 EXPOSE 6006
 WORKDIR /home
