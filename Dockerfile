@@ -132,8 +132,26 @@ RUN pip uninstall tb-nightly tensorboard tensorflow \
     ${PIP_INSTALL} tensorflow
 
 # dm_control
-RUN ${PIP_INSTALL} dm_control atari-py dmc2gym&& \
+RUN ${PIP_INSTALL} dm_control atari-py git+https://gh.api.99988866.xyz/https://github.com/denisyarats/dmc2gym.git && \
     ${PIP_INSTALL} protobuf==3.19.4
+
+# pettingzoo
+RUN ${PIP_INSTALL} pettingzoo\[all\] supersuit tb-nightly
+
+# drones
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive $APT_INSTALL ffmpeg && \
+    ${PIP_INSTALL} git+https://gh.api.99988866.xyz/https://github.com/utiasDSL/gym-pybullet-drones.git
+
+# spr
+    # rlpyt
+RUN ${PIP_INSTALL} git+https://gh.api.99988866.xyz/https://github.com/astooke/rlpyt.git pyprind
+    # Atari ROMS.
+RUN wget -L -nv http://www.atarimania.com/roms/Roms.rar && \
+    unrar x Roms.rar && \
+    python3 -m atari_py.import_roms ROMS && \
+    rm -rf Roms.rar ROMS
 
 RUN python -c "import mujoco_py" && \
     python -c "import gym" && \
@@ -213,7 +231,7 @@ RUN chmod 600 /root/.ssh/authorized_keys && \
     service ssh restart && \
     echo "root:123456" | chpasswd
 # add env for ssh conect
-RUN sed -i '$a\export $(cat /proc/1/environ |tr "\\0" "\\n" | grep -E "SHELL|LD_LIBRARY_PATH|LD_PRELOAD|SC2PATH|LC_ALL|LANG"  | xargs)' ~/.zshrc
+RUN sed -i '$a\export $(cat /proc/1/environ |tr "\\0" "\\n" | grep -E "SHELL|LD_LIBRARY_PATH|LD_PRELOAD|SC2PATH|LC_ALL|LANG|PATH"  | xargs)' ~/.zshrc
 
 ENTRYPOINT service ssh start && /bin/zsh
 
