@@ -1,4 +1,4 @@
-FROM hlsong/pytorch:1.11.0-py3.8-cuda11.3.1-devel-ubuntu20.04
+FROM hlsong/pytorch:1.11.0-py3.8-cuda11.3.1-runtime-ubuntu20.04
 ################################
 # Install apt-get Requirements #
 ################################
@@ -87,7 +87,8 @@ RUN conda install ruamel.yaml -y
 RUN conda install -c conda-forge -y \
     scikit-learn scikit-video \
     gym tensorboard tensorboardX pandas seaborn matplotlib
-RUN ${PIP_INSTALL} setuptools psutil wheel && \
+RUN ${PIP_INSTALL} --upgrade pip && \
+    ${PIP_INSTALL} setuptools psutil wheel && \
     ${PIP_INSTALL} scikit-image termcolor wandb hydra-core kornia  \
     git+https://ghproxy.com/https://github.com/oxwhirl/smac.git \
     gfootball mujoco mujoco-py
@@ -96,26 +97,29 @@ RUN ${PIP_INSTALL} setuptools psutil wheel && \
 #           MARL ENVS          #
 ################################
 WORKDIR /marl_envs
-ADD *.tar.gz ./
-ADD *.zip ./
-
-#          StarCraftII         #
-RUN unzip -P iagreetotheeula SC2.4.10.zip && \
-    mkdir -p StarCraftII/Maps/ && \
-    unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
-    rm -rf SC2.4.10.zip && rm -rf SMAC_Maps.zip && rm -rf __MACOSX/ 
-ENV SC2PATH /marl_envs/StarCraftII
-
+# ADD *.tar.gz ./
+# ADD *.zip ./
+# DexterousHands.zip
+# IsaacGym_Preview_4_Package.tar.gz
+# IsaacGymEnvs.zip
+# mujoco210-linux-x86_64.tar.gz
+# multiagent_mujoco.zip
+# SC2.4.10.zip
+# SMAC_Maps.zip
 #          isaacgym            #
+ADD IsaacGym_Preview_4_Package.tar.gz ./
+ADD IsaacGymEnvs.zip ./
 RUN ${PIP_INSTALL} -e ./isaacgym/python
 RUN unzip IsaacGymEnvs.zip && rm -rf IsaacGymEnvs.zip && \
     ${PIP_INSTALL} -e ./IsaacGymEnvs
 
 # Mujoco 
+ADD mujoco210-linux-x86_64.tar.gz ./
 RUN mkdir -p /root/.mujoco && cp -r mujoco210 /root/.mujoco/ && \
     rm -rf mujoco210
 
 # Multi-Agent Mujoco 
+ADD multiagent_mujoco.zip ./
 RUN unzip multiagent_mujoco.zip && rm -rf multiagent_mujoco.zip && \
     ${PIP_INSTALL} -e ./multiagent_mujoco && \
     ${PIP_INSTALL} gym==0.21.0
@@ -123,8 +127,18 @@ ENV LD_LIBRARY_PATH /root/.mujoco/mujoco210/bin:$LD_LIBRARY_PATH
 ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libGLEW.so
 
 # DexterousHands
+ADD DexterousHands.zip ./
 RUN unzip DexterousHands.zip && rm -rf DexterousHands.zip && \
     ${PIP_INSTALL} -e ./DexterousHands
+
+#          StarCraftII         #
+ADD SC2.4.10.zip ./
+ADD SMAC_Maps.zip ./
+RUN unzip -P iagreetotheeula SC2.4.10.zip && \
+    mkdir -p StarCraftII/Maps/ && \
+    unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
+    rm -rf SC2.4.10.zip && rm -rf SMAC_Maps.zip && rm -rf __MACOSX/ 
+ENV SC2PATH /marl_envs/StarCraftII
 
 # fix tensorboard
 RUN pip uninstall tb-nightly tensorboard tensorflow \
@@ -148,8 +162,8 @@ RUN apt-get update && \
     # rlpyt
 RUN ${PIP_INSTALL} git+https://gh.api.99988866.xyz/https://github.com/astooke/rlpyt.git pyprind
     # Atari ROMS.
-RUN wget -L -nv http://www.atarimania.com/roms/Roms.rar && \
-    unrar x Roms.rar && \
+ADD Roms.rar ./
+RUN unrar x Roms.rar && \
     python3 -m atari_py.import_roms ROMS && \
     rm -rf Roms.rar ROMS
 
@@ -187,13 +201,13 @@ RUN ldconfig && \
 #           zsh & tmux         #
 ################################
 RUN cd ~ && \
-    git clone https://github.91chi.fun/https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh && \
+    git clone https://gh.api.99988866.xyz/https://github.com/ohmyzsh/ohmyzsh.git ~/.oh-my-zsh && \
     cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc && \
     sed -i "s/ZSH_THEME=\"robbyrussell\"/ZSH_THEME=\"ys\"/g" ~/.zshrc && \
     sed -i "s/plugins=(git)/plugins=(git zsh-autosuggestions zsh-syntax-highlighting tmux z extract sudo)/g" ~/.zshrc && \
-    git clone https://github.91chi.fun/https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
-    git clone https://github.91chi.fun/https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting && \
-    git clone https://github.91chi.fun/https://github.com/gpakosz/.tmux.git ~/.tmux&& \
+    git clone https://gh.api.99988866.xyz/https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && \
+    git clone https://gh.api.99988866.xyz/https://github.com/zsh-users/zsh-syntax-highlighting.git ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting && \
+    git clone https://gh.api.99988866.xyz/https://github.com/gpakosz/.tmux.git ~/.tmux&& \
     ln -s -f .tmux/.tmux.conf && \
     cp .tmux/.tmux.conf.local . &&\
     /opt/conda/bin/conda init zsh
@@ -209,7 +223,7 @@ RUN echo "fi" >> ~/.bashrc
 ################################
 #   zsh Theme powerlevel10k    #
 ################################
-RUN git clone --depth=1 https://gitee.com/romkatv/powerlevel10k.git ~/powerlevel10k && \
+RUN git clone --depth=1 https://gh.api.99988866.xyz/https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k && \
     echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
 # may need to install fonts to support full use of powerlevel10k,follow the link below
 # https://github.com/romkatv/powerlevel10k#meslo-nerd-font-patched-for-powerlevel10k
