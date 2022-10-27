@@ -1,4 +1,4 @@
-FROM hlsong/pytorch:1.11.0-py3.8-cuda11.3.1-runtime-ubuntu20.04
+FROM hlsong/pytorch:1.11.0-py3.8-cuda11.3.1-devel-ubuntu20.04
 ################################
 # Install apt-get Requirements #
 ################################
@@ -87,6 +87,7 @@ RUN conda install ruamel.yaml -y
 RUN conda install -c conda-forge -y \
     scikit-learn scikit-video \
     gym tensorboard tensorboardX pandas seaborn matplotlib
+# foot ball
 RUN ${PIP_INSTALL} --upgrade pip && \
     ${PIP_INSTALL} setuptools psutil wheel && \
     ${PIP_INSTALL} scikit-image termcolor wandb hydra-core kornia  \
@@ -106,19 +107,19 @@ WORKDIR /marl_envs
 # multiagent_mujoco.zip
 # SC2.4.10.zip
 # SMAC_Maps.zip
-#          isaacgym            #
-ADD IsaacGym_Preview_4_Package.tar.gz ./
-ADD IsaacGymEnvs.zip ./
-RUN ${PIP_INSTALL} -e ./isaacgym/python
-RUN unzip IsaacGymEnvs.zip && rm -rf IsaacGymEnvs.zip && \
-    ${PIP_INSTALL} -e ./IsaacGymEnvs
+#1          isaacgym            #
+# ADD IsaacGym_Preview_4_Package.tar.gz ./
+# ADD IsaacGymEnvs.zip ./
+# RUN ${PIP_INSTALL} -e ./isaacgym/python
+# RUN unzip IsaacGymEnvs.zip && rm -rf IsaacGymEnvs.zip && \
+#     ${PIP_INSTALL} -e ./IsaacGymEnvs
 
-# Mujoco 
+#2 Mujoco 
 ADD mujoco210-linux-x86_64.tar.gz ./
 RUN mkdir -p /root/.mujoco && cp -r mujoco210 /root/.mujoco/ && \
     rm -rf mujoco210
 
-# Multi-Agent Mujoco 
+#3 Multi-Agent Mujoco 
 ADD multiagent_mujoco.zip ./
 RUN unzip multiagent_mujoco.zip && rm -rf multiagent_mujoco.zip && \
     ${PIP_INSTALL} -e ./multiagent_mujoco && \
@@ -126,39 +127,39 @@ RUN unzip multiagent_mujoco.zip && rm -rf multiagent_mujoco.zip && \
 ENV LD_LIBRARY_PATH /root/.mujoco/mujoco210/bin:$LD_LIBRARY_PATH
 ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libGLEW.so
 
-# DexterousHands
-ADD DexterousHands.zip ./
-RUN unzip DexterousHands.zip && rm -rf DexterousHands.zip && \
-    ${PIP_INSTALL} -e ./DexterousHands
+#4  DexterousHands
+# ADD DexterousHands.zip ./
+# RUN unzip DexterousHands.zip && rm -rf DexterousHands.zip && \
+#     ${PIP_INSTALL} -e ./DexterousHands
 
-#          StarCraftII         #
-ADD SC2.4.10.zip ./
-ADD SMAC_Maps.zip ./
-RUN unzip -P iagreetotheeula SC2.4.10.zip && \
-    mkdir -p StarCraftII/Maps/ && \
-    unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
-    rm -rf SC2.4.10.zip && rm -rf SMAC_Maps.zip && rm -rf __MACOSX/ 
-ENV SC2PATH /marl_envs/StarCraftII
+#5          StarCraftII         #
+# ADD SC2.4.10.zip ./
+# ADD SMAC_Maps.zip ./
+# RUN unzip -P iagreetotheeula SC2.4.10.zip && \
+#     mkdir -p StarCraftII/Maps/ && \
+#     unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
+#     rm -rf SC2.4.10.zip && rm -rf SMAC_Maps.zip && rm -rf __MACOSX/ 
+# ENV SC2PATH /marl_envs/StarCraftII
 
 # fix tensorboard
 RUN pip uninstall tb-nightly tensorboard tensorflow \
     tensorflow-estimator tf-estimator-nightly tf-nightly -y && \
     ${PIP_INSTALL} tensorflow
 
-# dm_control
+#6 dm_control
 RUN ${PIP_INSTALL} dm_control atari-py git+https://gh.api.99988866.xyz/https://github.com/denisyarats/dmc2gym.git && \
     ${PIP_INSTALL} protobuf==3.19.4
 
-# pettingzoo
+#7 pettingzoo
 RUN ${PIP_INSTALL} pettingzoo\[all\] supersuit tb-nightly
 
-# drones
+#8 drones
 RUN apt-get update && \
     apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive $APT_INSTALL ffmpeg && \
     ${PIP_INSTALL} git+https://gh.api.99988866.xyz/https://github.com/utiasDSL/gym-pybullet-drones.git
 
-# spr
+#9 spr
     # rlpyt
 RUN ${PIP_INSTALL} git+https://gh.api.99988866.xyz/https://github.com/astooke/rlpyt.git pyprind
     # Atari ROMS.
@@ -170,7 +171,7 @@ RUN unrar x Roms.rar && \
 RUN python -c "import mujoco_py" && \
     python -c "import gym" && \
     python -c "import smac" && \
-    python -c "import isaacgym" && \
+    # python -c "import isaacgym" && \
     python -c "import multiagent_mujoco"
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
