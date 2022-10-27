@@ -231,8 +231,8 @@ RUN chmod 600 /root/.ssh/authorized_keys && \
     service ssh restart && \
     echo "root:123456" | chpasswd
 # add env for ssh conect
-RUN sed -i '$a\export $(cat /proc/1/environ |tr "\\0" "\\n" | grep -E "SHELL|LD_LIBRARY_PATH|LD_PRELOAD|SC2PATH|LC_ALL|LANG|PATH"  | xargs)' ~/.zshrc
-
+RUN sed -i '$a\export $(cat /proc/1/environ |tr "\\0" "\\n" | grep -E "SHELL|LD_LIBRARY_PATH|LD_PRELOAD|SC2PATH|LC_ALL|LANG|PATH" | xargs)' ~/.zshrc && \
+    sed -i '$a\export NUMEXPR_MAX_THREADS=64' ~/.zshrc
 ENTRYPOINT service ssh start && /bin/zsh
 
 
