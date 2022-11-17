@@ -1,4 +1,4 @@
-FROM hlsong/pytorch:1.11.0-py3.8-cuda11.3.1-devel-ubuntu20.04
+FROM hlsong/pytorch:1.11.0-py3.8-cuda11.3.1-runtime-ubuntu20.04
 ################################
 # Install apt-get Requirements #
 ################################
@@ -235,8 +235,8 @@ RUN echo "fi" >> ~/.bashrc
 ################################
 #   zsh Theme powerlevel10k    #
 ################################
-RUN git clone --depth=1 https://ghproxy.com/https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k && \
-    echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
+# RUN git clone --depth=1 https://ghproxy.com/https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k && \
+#     echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
 # may need to install fonts to support full use of powerlevel10k,follow the link below
 # https://github.com/romkatv/powerlevel10k#meslo-nerd-font-patched-for-powerlevel10k
 # can also set the TERM and COLORTERM when run docker with "docker run -e TERM -e COLORTERM -e LC_ALL=C.UTF-8 ${tag}"
