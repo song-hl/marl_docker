@@ -41,18 +41,36 @@ RUN git clone https://ghproxy.com/https://github.com/Syllo/nvtop.git && \
 #     /bin/zsh Miniconda3-py38_4.12.0-Linux-x86_64.sh -b -p /opt/conda && \
 #     /opt/conda/bin/conda init zsh&& \
 #     rm Miniconda3-py38_4.12.0-Linux-x86_64.sh
-# ENV PATH /opt/conda/bin:$PATH
 
 ################################
 #  change conda & pip sources  #
 ################################
-RUN conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/conda-forge/ && \
-    conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/main/ && \
-    conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/free/ && \
-    conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/menpo/ && \
-    conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/bioconda/ && \
-    conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/msys2/ && \
-    conda config --set show_channel_urls yes 
+RUN conda config --set show_channel_urls yes && \
+    # 北京外国语学院的源
+    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/pytorch/ && \
+    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/simpleitk/ && \
+    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/menpo/ && \
+    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/bioconda/ && \
+    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/msys2/ && \
+    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/conda-forge/ && \
+    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/pkgs/main/ && \
+    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/pkgs/r/ 
+# 清华大学的源
+    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/ && \
+    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/simpleitk/ && \
+    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/menpo/ && \
+    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/ && \
+    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/msys2/ && \
+    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/ && \
+    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/ && \
+    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r/ 
+# 科大的源
+    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/conda-forge/ && \
+    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/main/ && \
+    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/free/ && \
+    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/menpo/ && \
+    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/bioconda/ && \
+    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/msys2/
 
 RUN ${PIP_INSTALL} -i https://mirrors.ustc.edu.cn/pypi/web/simple pip -U && \
     pip config set global.index-url https://mirrors.ustc.edu.cn/pypi/web/simple
@@ -108,11 +126,11 @@ WORKDIR /marl_envs
 # SC2.4.10.zip
 # SMAC_Maps.zip
 #1          isaacgym            #
-# ADD IsaacGym_Preview_4_Package.tar.gz ./
-# ADD IsaacGymEnvs.zip ./
-# RUN ${PIP_INSTALL} -e ./isaacgym/python
-# RUN unzip IsaacGymEnvs.zip && rm -rf IsaacGymEnvs.zip && \
-#     ${PIP_INSTALL} -e ./IsaacGymEnvs
+ADD IsaacGym_Preview_4_Package.tar.gz ./
+ADD IsaacGymEnvs.zip ./
+RUN ${PIP_INSTALL} -e ./isaacgym/python
+RUN unzip IsaacGymEnvs.zip && rm -rf IsaacGymEnvs.zip && \
+    ${PIP_INSTALL} -e ./IsaacGymEnvs
 
 #2 Mujoco 
 ADD mujoco210-linux-x86_64.tar.gz ./
@@ -128,18 +146,18 @@ ENV LD_LIBRARY_PATH /root/.mujoco/mujoco210/bin:$LD_LIBRARY_PATH
 ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libGLEW.so
 
 #4  DexterousHands
-# ADD DexterousHands.zip ./
-# RUN unzip DexterousHands.zip && rm -rf DexterousHands.zip && \
-#     ${PIP_INSTALL} -e ./DexterousHands
+ADD DexterousHands.zip ./
+RUN unzip DexterousHands.zip && rm -rf DexterousHands.zip && \
+    ${PIP_INSTALL} -e ./DexterousHands
 
 #5          StarCraftII         #
-# ADD SC2.4.10.zip ./
-# ADD SMAC_Maps.zip ./
-# RUN unzip -P iagreetotheeula SC2.4.10.zip && \
-#     mkdir -p StarCraftII/Maps/ && \
-#     unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
-#     rm -rf SC2.4.10.zip && rm -rf SMAC_Maps.zip && rm -rf __MACOSX/ 
-# ENV SC2PATH /marl_envs/StarCraftII
+ADD SC2.4.10.zip ./
+ADD SMAC_Maps.zip ./
+RUN unzip -P iagreetotheeula SC2.4.10.zip && \
+    mkdir -p StarCraftII/Maps/ && \
+    unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
+    rm -rf SC2.4.10.zip && rm -rf SMAC_Maps.zip && rm -rf __MACOSX/ 
+ENV SC2PATH /marl_envs/StarCraftII
 
 # fix tensorboard
 RUN pip uninstall tb-nightly tensorboard tensorflow \
@@ -243,7 +261,6 @@ RUN chmod 600 /root/.ssh/authorized_keys && \
     sed -i "s/#PermitEmptyPasswords no/PermitEmptyPasswords yes/g" /etc/ssh/sshd_config && \
     sed -i "s/#PasswordAuthentication yes/PasswordAuthentication yes/g" /etc/ssh/sshd_config && \
     sed -i "s/#Port 22/Port 11958/g" /etc/ssh/sshd_config && \
-    service ssh restart && \
     echo "root:123456" | chpasswd
 # add env for ssh conect
 RUN sed -i '$a\export $(cat /proc/1/environ |tr "\\0" "\\n" | grep -E "SHELL|LD_LIBRARY_PATH|LD_PRELOAD|SC2PATH|LC_ALL|LANG|PATH" | xargs)' ~/.zshrc && \
