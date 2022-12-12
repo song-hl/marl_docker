@@ -182,16 +182,6 @@ ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libGLEW.so
 # RUN unzip DexterousHands.zip && rm -rf DexterousHands.zip && \
 #     ${PIP_INSTALL} -e ./DexterousHands
 
-#5          StarCraftII         #
-# RUN ${PIP_INSTALL} git+https://ghproxy.com/https://github.com/oxwhirl/smac.git
-# ADD SC2.4.10.zip ./
-# ADD SMAC_Maps.zip ./
-# RUN unzip -P iagreetotheeula SC2.4.10.zip && \
-#     mkdir -p StarCraftII/Maps/ && \
-#     unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
-#     rm -rf SC2.4.10.zip && rm -rf SMAC_Maps.zip && rm -rf __MACOSX/ 
-# ENV SC2PATH /marl_envs/StarCraftII
-
 # fix tensorboard
 RUN pip uninstall tb-nightly tensorboard tensorflow \
     tensorflow-estimator tf-estimator-nightly tf-nightly -y && \
@@ -242,6 +232,16 @@ RUN git clone https://ghproxy.com/https://github.com/NVIDIA-Omniverse/IsaacGymEn
     ${PIP_INSTALL} -e ./IsaacGymEnvs
 
 ENV NVIDIA_VISIBLE_DEVICES=all NVIDIA_DRIVER_CAPABILITIES=all
+
+#5          StarCraftII         #
+RUN ${PIP_INSTALL} git+https://ghproxy.com/https://github.com/oxwhirl/smac.git
+ADD SC2.4.10.zip ./
+ADD SMAC_Maps.zip ./
+RUN unzip -P iagreetotheeula SC2.4.10.zip && \
+    mkdir -p StarCraftII/Maps/ && \
+    unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
+    rm -rf SC2.4.10.zip && rm -rf SMAC_Maps.zip && rm -rf __MACOSX/ 
+ENV SC2PATH /marl_envs/StarCraftII
 
 # fix opencv and pillow
 RUN ${PIP_INSTALL} 'opencv-python-headless<4.3' && \
