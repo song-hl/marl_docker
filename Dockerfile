@@ -6,7 +6,7 @@ ENV LANG C.UTF-8
 ENV APT_INSTALL="apt-get install -y --no-install-recommends"
 ENV PIP_INSTALL="python -m pip --no-cache-dir install --upgrade --default-timeout 100"
 
-RUN sed -i "s/archive.ubuntu.com/mirrors.ustc.edu.cn/g" /etc/apt/sources.list && \
+RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.ustc.edu.cn@g' /etc/apt/sources.list &&\
     rm -rf /var/lib/apt/lists/* \
     /etc/apt/sources.list.d/cuda.list \
     /etc/apt/sources.list.d/nvidia-ml.list && \
@@ -139,12 +139,12 @@ RUN if [ ! $PYTORCH_DOWNLOAD_URL ]; \
 ################################
 RUN conda update -n base conda && \
     ${PIP_INSTALL} --upgrade pip
-RUN conda install ruamel.yaml -y
-RUN conda install -c conda-forge -y \
+RUN conda install ruamel.yaml -y && \
+    conda install -c conda-forge -y \
     gym \
     scikit-learn scikit-video \
-    tensorboard tensorboardX pandas seaborn matplotlib
-RUN ${PIP_INSTALL} setuptools psutil wheel && \
+    tensorboard tensorboardX pandas seaborn matplotlib && \
+    ${PIP_INSTALL} setuptools psutil wheel && \
     ${PIP_INSTALL} scikit-image termcolor wandb hydra-core kornia
 
 ################################
@@ -173,6 +173,7 @@ RUN mkdir -p /root/.mujoco && cp -r mujoco210 /root/.mujoco/ && \
 ADD multiagent_mujoco.zip ./
 RUN unzip multiagent_mujoco.zip && rm -rf multiagent_mujoco.zip && \
     ${PIP_INSTALL} -e ./multiagent_mujoco && \
+    ${PIP_INSTALL} setuptools==65.5.0 && \
     ${PIP_INSTALL} gym==0.21.0
 ENV LD_LIBRARY_PATH /root/.mujoco/mujoco210/bin:$LD_LIBRARY_PATH
 ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libGLEW.so
@@ -198,8 +199,8 @@ RUN ${PIP_INSTALL} dm_control atari-py git+https://ghproxy.com/https://github.co
 RUN apt-get update && \
     apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive $APT_INSTALL ffmpeg && \
-    git clone https://ghproxy.com/https://github.com/utiasDSL/gym-pybullet-drones.git
-RUN ${PIP_INSTALL} -e ./gym-pybullet-drones/ 
+    git clone https://github.com/utiasDSL/gym-pybullet-drones.git && \
+    ${PIP_INSTALL} -e ./gym-pybullet-drones/ 
 # ${PIP_INSTALL} git+https://ghproxy.com/https://github.com/utiasDSL/gym-pybullet-drones.git
 
 #9 spr
@@ -217,8 +218,8 @@ RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive $APT_INSTALL libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev \
     mesa-common-dev gcc-8 g++-8 vulkan-utils mesa-vulkan-drivers pigz libegl1 git-lfs
 # Force gcc 8 to avoid CUDA 10 build issues on newer base OS
-RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 8
-RUN update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 8
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 8 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 8
 
 # WAR for eglReleaseThread shutdown crash in libEGL_mesa.so.0 (ensure it's never detected/loaded)
 # Can't remove package libegl-mesa0 directly (because of libegl1 which we need)
@@ -227,8 +228,8 @@ RUN rm /usr/lib/x86_64-linux-gnu/libEGL_mesa.so.0 /usr/lib/x86_64-linux-gnu/libE
 COPY isaacgym/nvidia_icd.json /usr/share/vulkan/icd.d/nvidia_icd.json
 COPY isaacgym/10_nvidia.json /usr/share/glvnd/egl_vendor.d/10_nvidia.json
 ADD IsaacGym_Preview_4_Package.tar.gz ./
-RUN ${PIP_INSTALL} -e ./isaacgym/python
-RUN git clone https://ghproxy.com/https://github.com/NVIDIA-Omniverse/IsaacGymEnvs.git && \
+RUN ${PIP_INSTALL} -e ./isaacgym/python && \
+    git clone https://ghproxy.com/https://github.com/NVIDIA-Omniverse/IsaacGymEnvs.git && \
     ${PIP_INSTALL} -e ./IsaacGymEnvs
 
 ENV NVIDIA_VISIBLE_DEVICES=all NVIDIA_DRIVER_CAPABILITIES=all
@@ -238,10 +239,11 @@ RUN ${PIP_INSTALL} git+https://ghproxy.com/https://github.com/oxwhirl/smac.git
 ADD SC2.4.10.zip ./
 ADD SMAC_Maps.zip ./
 RUN unzip -P iagreetotheeula SC2.4.10.zip && \
-    mkdir -p StarCraftII/Maps/ && \
-    unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
+    mkdir -p StarCraftII/Maps/ 
+RUN unzip SMAC_Maps.zip && mv SMAC_Maps StarCraftII/Maps/ && \
     rm -rf SC2.4.10.zip && rm -rf SMAC_Maps.zip && rm -rf __MACOSX/ 
 ENV SC2PATH /marl_envs/StarCraftII
+RUN ${PIP_INSTALL} git+https://github.com/oxwhirl/smacv2.git
 
 # fix opencv and pillow
 RUN ${PIP_INSTALL} 'opencv-python-headless<4.3' && \
@@ -275,6 +277,15 @@ RUN ldconfig && \
 #     adduser ${user} sudo && \
 #     echo "${user}:123456" | chpasswd
 # RUN usermod -u ${userid} ${user} && groupmod -g ${userid} ${user}
+# # add user to conda
+# # Anaconda environment
+# RUN echo "export ANACONDA_HOME=/opt/conda" >> /etc/profile && \
+#     echo "export PATH=\$ANACONDA_HOME/bin:\$PATH" >> /etc/profile 
+# RUN groupadd conda && \
+#     chgrp -R conda /opt/conda && \
+#     chmod 770 -R /opt/conda && \
+#     usermod -a -G conda ${user}
+
 # WORKDIR /home/${user}
 # USER ${user}
 
@@ -297,9 +308,9 @@ RUN cd ~ && \
 #            Set Shell         # 
 ################################
 ENV SHELL /bin/zsh
-RUN echo "if [ -t 1 ]; then" >> ~/.bashrc
-RUN echo "exec zsh" >> ~/.bashrc
-RUN echo "fi" >> ~/.bashrc
+RUN echo "if [ -t 1 ]; then" >> ~/.bashrc && \
+    echo "exec zsh" >> ~/.bashrc && \
+    echo "fi" >> ~/.bashrc
 
 ################################
 #   zsh Theme powerlevel10k    #
@@ -316,21 +327,37 @@ ENV LC_ALL=C.UTF-8 \
 ################################
 #           open ssh           #
 ################################
+# add env for ssh conect
+RUN sed -i '$a\export $(cat /proc/1/environ |tr "\\0" "\\n" | grep -E "SHELL|LD_LIBRARY_PATH|LD_PRELOAD|SC2PATH|LC_ALL|LANG|PATH" | xargs)' ~/.zshrc && \
+    sed -i '$a\export NUMEXPR_MAX_THREADS=64' ~/.zshrc
+
+## root ##
 COPY ./id_rsa.docker.pub /root/.ssh/authorized_keys
 RUN chmod 600 /root/.ssh/authorized_keys && \
     service ssh start && \
     sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/g" /etc/ssh/sshd_config && \
     sed -i "s/UsePAM yes/UsePAM no/g" /etc/ssh/sshd_config && \
-    sed -i "s/#PermitEmptyPasswords no/PermitEmptyPasswords yes/g" /etc/ssh/sshd_config && \
     sed -i "s/#PasswordAuthentication yes/PasswordAuthentication yes/g" /etc/ssh/sshd_config && \
-    sed -i "s/#Port 22/Port 11958/g" /etc/ssh/sshd_config && \
+    sed -i "s/#Port 22/Port 23958/g" /etc/ssh/sshd_config && \
     sed -i "s/#X11Forwarding yes/X11Forwarding yes/g" /etc/ssh/sshd_config && \
     sed -i "s/#X11UseLocalhost yes/X11UseLocalhost no/g" /etc/ssh/sshd_config && \
     sed -i "s/#X11DisplayOffset 10/X11DisplayOffset 10/g" /etc/ssh/sshd_config && \
     echo "root:123456" | chpasswd
-# add env for ssh conect
-RUN sed -i '$a\export $(cat /proc/1/environ |tr "\\0" "\\n" | grep -E "SHELL|LD_LIBRARY_PATH|LD_PRELOAD|SC2PATH|LC_ALL|LANG|PATH" | xargs)' ~/.zshrc && \
-    sed -i '$a\export NUMEXPR_MAX_THREADS=64' ~/.zshrc
+## user ##
+# COPY --chown=${user}:${user} ./id_rsa.docker.pub /home/${user}/.ssh/authorized_keys
+# RUN chmod 600 /home/${user}/.ssh/authorized_keys 
+# USER root
+# RUN service ssh start && \
+#     sed -i "s/#PasswordAuthentication yes/PasswordAuthentication yes/g" /etc/ssh/sshd_config && \
+#     sed -i "s/#Port 22/Port 12958/g" /etc/ssh/sshd_config && \
+#     sed -i "s/#X11Forwarding yes/X11Forwarding yes/g" /etc/ssh/sshd_config && \
+#     sed -i "s/#X11UseLocalhost yes/X11UseLocalhost no/g" /etc/ssh/sshd_config && \
+#     sed -i "s/#X11DisplayOffset 10/X11DisplayOffset 10/g" /etc/ssh/sshd_config
+# USER ${user}
+# RUN torch start_ssh.sh && \
+#     echo "echo '123456' |sudo -S service ssh start" >> ./start_ssh.sh && \
+#     chmod +x ./start_ssh.sh
+# ENTRYPOINT [ "/bin/zsh", "-c", "./start_ssh.sh" ]
 ENTRYPOINT service ssh start && /bin/zsh
 
-WORKDIR /home
+WORKDIR /workspace
