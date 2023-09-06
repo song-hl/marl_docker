@@ -3,8 +3,9 @@ FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
 # Install apt-get Requirements #
 ################################
 ENV LANG C.UTF-8
-ENV APT_INSTALL="apt-get install -y --no-install-recommends"
 ENV PIP_INSTALL="python -m pip --no-cache-dir install --upgrade --default-timeout 100"
+ENV APT_INSTALL="apt-get install -y --no-install-recommends"
+
 
 RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.ustc.edu.cn@g' /etc/apt/sources.list &&\
     rm -rf /var/lib/apt/lists/* \
@@ -15,31 +16,30 @@ RUN sed -i 's@//.*archive.ubuntu.com@//mirrors.ustc.edu.cn@g' /etc/apt/sources.l
 RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
     apt-utils build-essential ca-certificates cifs-utils cmake curl dpkg-dev g++ 
 RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    git htop rar sudo swig tar tmux tzdata unrar unzip vim wget xvfb zip zsh software-properties-common
+    git htop rar sudo swig tar tmux tzdata unrar unzip wget xvfb zip zsh software-properties-common vim
 RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    x11vnc xpra xserver-xorg-dev iproute2 iputils-ping locales mesa-utils net-tools qt5-default
+    x11vnc xpra xserver-xorg-dev iproute2 iputils-ping locales net-tools qt5-default
 RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
     nfs-common openmpi-bin openmpi-doc openssh-client openssh-server openssl patchelf pkg-config 
 RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    libboost-all-dev libdirectfb-dev libevent-dev libgl1-mesa-dev libgl1-mesa-glx libglew-dev libglfw3 \
-    libglib2.0-0 libncurses5-dev libncursesw5-dev libopenmpi-dev libosmesa6-dev libsdl2-dev libsdl2-gfx-dev \ 
-    libsdl2-image-dev libsdl2-ttf-dev libsm6 libst-dev libxext6 libxrender-dev 
+    libevent-dev  libgl1-mesa-glx libglew-dev libglfw3 \
+    libglib2.0-0 libncurses5-dev libncursesw5-dev libopenmpi-dev libosmesa6-dev   \ 
+    libsm6  libxext6 libxrender-dev 
 RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
     zlib1g-dev libgdbm-dev libnss3-dev libssl-dev \
     libreadline-dev libffi-dev libsqlite3-dev libbz2-dev liblzma-dev
+
 ################################
 #            NVTOP             #
 ################################
-RUN git clone https://ghproxy.com/https://github.com/Syllo/nvtop.git && \
-    mkdir -p nvtop/build && cd nvtop/build && \
-    cmake .. -DNVIDIA_SUPPORT=ON -DAMDGPU_SUPPORT=ON && \
-    make && make install
+RUN add-apt-repository ppa:flexiondotorg/nvtop &&\
+    DEBIAN_FRONTEND=noninteractive $APT_INSTALL nvtop 
 
 ################################
 #        Install conda         #
 ################################
-# can be changed to py39_4.12.0 or py37_4.12.0
-ENV CONDA_VERSION=py38_4.12.0  
+# can be changed to py39_23.3.1-0 or py38_23.3.1-0
+ENV CONDA_VERSION=py38_23.3.1-0
 
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh && \
     bash Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -b -p /opt/conda && \
@@ -52,30 +52,30 @@ ENV PATH /opt/conda/bin:${PATH}
 ################################
 RUN conda config --set show_channel_urls yes && \
     # 北京外国语学院的源
-    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/pytorch/ && \
-    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/simpleitk/ && \
-    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/menpo/ && \
-    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/bioconda/ && \
-    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/msys2/ && \
-    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/conda-forge/ && \
-    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/pkgs/main/ && \
-    conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/pkgs/r/ 
+    # conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/pytorch/ && \
+    # conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/simpleitk/ && \
+    # conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/menpo/ && \
+    # conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/bioconda/ && \
+    # conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/msys2/ && \
+    # conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/cloud/conda-forge/ && \
+    # conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/pkgs/main/ && \
+    # conda config --add channels https://mirrors.bfsu.edu.cn/anaconda/pkgs/r/ 
 # 清华大学的源
-    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/ && \
-    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/simpleitk/ && \
-    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/menpo/ && \
-    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/ && \
-    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/msys2/ && \
-    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/ && \
-    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/ && \
-    # conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r/ 
+    conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/ && \
+    conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/simpleitk/ && \
+    conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/menpo/ && \
+    conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/ && \
+    conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/msys2/ && \
+    conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/ && \
+    conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/main/ && \
+    conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/r/ 
 # 科大的源
-    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/conda-forge/ && \
-    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/main/ && \
     # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/free/ && \
-    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/menpo/ && \
+    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/pkgs/main/ && \
+    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/conda-forge/ && \
+    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/msys2/ && \
     # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/bioconda/ && \
-    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/msys2/
+    # conda config --add channels https://mirrors.ustc.edu.cn/anaconda/cloud/menpo/
 
 RUN ${PIP_INSTALL} -i https://mirrors.ustc.edu.cn/pypi/web/simple pip -U && \
     pip config set global.index-url https://mirrors.ustc.edu.cn/pypi/web/simple
@@ -98,10 +98,10 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
 ################################
 #    gcc  GLIBCXX_3.4.30       #
 ################################
-RUN conda install -c conda-forge libstdcxx-ng=12.1.0 && \
-    rm -rf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 && \
-    cp /opt/conda/lib/libstdc++.so.6.0.30 /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30 && \
-    ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30 /usr/lib/x86_64-linux-gnu/libstdc++.so.6
+# RUN conda install -c conda-forge libstdcxx-ng=12.1.0 && \
+#     rm -rf /usr/lib/x86_64-linux-gnu/libstdc++.so.6 && \
+#     cp /opt/conda/lib/libstdc++.so.6.0.30 /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30 && \
+#     ln -s /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.30 /usr/lib/x86_64-linux-gnu/libstdc++.so.6
 
 ################################
 #            pytorch           #
@@ -144,7 +144,7 @@ RUN conda install ruamel.yaml -y && \
     gym \
     scikit-learn scikit-video \
     tensorboard tensorboardX pandas seaborn matplotlib && \
-    ${PIP_INSTALL} setuptools psutil wheel && \
+    ${PIP_INSTALL} setuptools psutil wheel && \ 
     ${PIP_INSTALL} scikit-image termcolor wandb hydra-core kornia
 
 ################################
@@ -161,6 +161,12 @@ WORKDIR /marl_envs
 # SMAC_Maps.zip
 
 # foot ball
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+    libgl1-mesa-dev libsdl2-dev  \
+    libsdl2-image-dev libsdl2-ttf-dev libsdl2-gfx-dev libboost-all-dev  \
+    libdirectfb-dev libst-dev mesa-utils sox ffmpeg libcairo2 libcairo2-dev
 RUN ${PIP_INSTALL} gfootball
 
 # Mujoco 
@@ -172,9 +178,7 @@ RUN mkdir -p /root/.mujoco && cp -r mujoco210 /root/.mujoco/ && \
 #3 Multi-Agent Mujoco 
 ADD multiagent_mujoco.zip ./
 RUN unzip multiagent_mujoco.zip && rm -rf multiagent_mujoco.zip && \
-    ${PIP_INSTALL} -e ./multiagent_mujoco && \
-    ${PIP_INSTALL} setuptools==65.5.0 && \
-    ${PIP_INSTALL} gym==0.21.0
+    ${PIP_INSTALL} -e ./multiagent_mujoco
 ENV LD_LIBRARY_PATH /root/.mujoco/mujoco210/bin:$LD_LIBRARY_PATH
 ENV LD_PRELOAD /usr/lib/x86_64-linux-gnu/libGLEW.so
 
@@ -198,10 +202,12 @@ RUN ${PIP_INSTALL} dm_control atari-py git+https://ghproxy.com/https://github.co
 #8 drones
 RUN apt-get update && \
     apt-get upgrade -y && \
-    DEBIAN_FRONTEND=noninteractive $APT_INSTALL ffmpeg && \
-    git clone https://github.com/utiasDSL/gym-pybullet-drones.git && \
-    ${PIP_INSTALL} -e ./gym-pybullet-drones/ 
-# ${PIP_INSTALL} git+https://ghproxy.com/https://github.com/utiasDSL/gym-pybullet-drones.git
+    DEBIAN_FRONTEND=noninteractive $APT_INSTALL ffmpeg libpython3.8-dev && \
+    ${PIP_INSTALL} setuptools==66.0.0 wheel==0.38.4
+RUN ${PIP_INSTALL} gym==0.21.0 && \
+    # git clone https://github.com/utiasDSL/gym-pybullet-drones.git && \
+    # ${PIP_INSTALL} -e ./gym-pybullet-drones/ 
+    ${PIP_INSTALL} git+https://ghproxy.com/https://github.com/utiasDSL/gym-pybullet-drones.git
 
 #9 spr
     # rlpyt
@@ -338,7 +344,7 @@ RUN chmod 600 /root/.ssh/authorized_keys && \
     sed -i "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/g" /etc/ssh/sshd_config && \
     sed -i "s/UsePAM yes/UsePAM no/g" /etc/ssh/sshd_config && \
     sed -i "s/#PasswordAuthentication yes/PasswordAuthentication yes/g" /etc/ssh/sshd_config && \
-    sed -i "s/#Port 22/Port 23958/g" /etc/ssh/sshd_config && \
+    sed -i "s/#Port 22/Port 10624/g" /etc/ssh/sshd_config && \
     sed -i "s/#X11Forwarding yes/X11Forwarding yes/g" /etc/ssh/sshd_config && \
     sed -i "s/#X11UseLocalhost yes/X11UseLocalhost no/g" /etc/ssh/sshd_config && \
     sed -i "s/#X11DisplayOffset 10/X11DisplayOffset 10/g" /etc/ssh/sshd_config && \
