@@ -75,9 +75,9 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
 #  使用镜像问题 problem : torch.version.cuda 与 系统cuda版本不同，                   # 
 # RUN ${PIP_INSTALL} 'torch==1.13.1' 'torchvision==0.14.1' 'torchaudio==0.13.1' -f https://mirror.sjtu.edu.cn/pytorch-wheels/cu117/       
 ############################  pip install  ##################################
-# RUN ${PIP_INSTALL} torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
+RUN ${PIP_INSTALL} torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
 ###########################   conda install (recommend)  ################################
-RUN conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 pytorch-cuda=11.7 -c nvidia -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
+# RUN conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 pytorch-cuda=11.7 -c nvidia -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
 
 ################################
 #        python packages       #
