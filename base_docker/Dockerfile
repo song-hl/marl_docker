@@ -1,5 +1,4 @@
-# FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
-FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 ################################
 # Install apt-get Requirements #
 ################################
@@ -76,9 +75,8 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
 # RUN ${PIP_INSTALL} 'torch==1.13.1' 'torchvision==0.14.1' 'torchaudio==0.13.1' -f https://mirror.sjtu.edu.cn/pytorch-wheels/cu117/       
 ############################  pip install  ##################################
 # RUN ${PIP_INSTALL} torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
-###########################   conda install (recommend)  ################################
-# RUN conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 pytorch-cuda=11.7 -c nvidia -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
-RUN conda install pytorch==1.11.0 torchvision==0.12.0 torchaudio==0.11.0 cudatoolkit=11.3 -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
+###########################   conda install (recommd)  ################################
+RUN conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 pytorch-cuda=11.7 -c nvidia -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
 
 ################################
 #        python packages       #
