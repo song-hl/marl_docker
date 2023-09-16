@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
 ################################
 # Install apt-get Requirements #
 ################################
@@ -34,7 +34,7 @@ RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
 #        Install conda         #
 ################################
 # can be changed to py39_23.5.2-0 or py38_23.5.2-0
-ENV CONDA_VERSION=py310_23.5.2-0
+ENV CONDA_VERSION=py311_23.5.2-0
 RUN curl https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -o ./miniconda.sh && \
     bash miniconda.sh -b -p /opt/conda && \
     /opt/conda/bin/conda init bash&& \
@@ -76,7 +76,7 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
 ############################  pip install  ##################################
 # RUN ${PIP_INSTALL} torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
 ###########################   conda install (recommd)  ################################
-RUN conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 pytorch-cuda=11.7 -c nvidia -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
+RUN conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c nvidia -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
 
 ################################
 #        python packages       #
