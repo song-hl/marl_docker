@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 ################################
 # Install apt-get Requirements #
 ################################
@@ -15,26 +15,27 @@ RUN sed -i "s/archive.ubuntu.com/mirrors.ustc.edu.cn/g" /etc/apt/sources.list &&
     apt-get clean && apt-get update && apt-get upgrade -y 
 
 RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    apt-utils build-essential ca-certificates cifs-utils cmake curl dpkg-dev g++ 
-RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    git htop rar sudo swig tar tmux tzdata unrar unzip wget xvfb zip zsh software-properties-common vim
-RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    x11vnc xpra xserver-xorg-dev iproute2 iputils-ping locales net-tools qt5-default
-RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    nfs-common openmpi-bin openmpi-doc openssh-client openssh-server openssl patchelf pkg-config 
-RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    libevent-dev  libgl1-mesa-glx libglew-dev libglfw3 \
-    libglib2.0-0 libncurses5-dev libncursesw5-dev libopenmpi-dev libosmesa6-dev   \ 
-    libsm6  libxext6 libxrender-dev 
-RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
-    zlib1g-dev libgdbm-dev libnss3-dev libssl-dev \
-    libreadline-dev libffi-dev libsqlite3-dev libbz2-dev liblzma-dev
+    git htop rar sudo swig tar tmux tzdata unrar unzip wget curl zip zsh vim \
+    openssh-client openssh-server openssl net-tools locales iputils-ping
+# RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+#     apt-utils build-essential ca-certificates cifs-utils cmake dpkg-dev g++
+# RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+#     x11vnc xpra xserver-xorg-dev iproute2  qt5-default software-properties-common
+# RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+#     nfs-common openmpi-bin openmpi-doc patchelf xvfb 
+# RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+#     libevent-dev  libgl1-mesa-glx libglew-dev libglfw3 \
+#     libglib2.0-0 libncurses5-dev libncursesw5-dev libopenmpi-dev libosmesa6-dev   \ 
+#     libsm6  libxext6 libxrender-dev 
+# RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
+#     zlib1g-dev libgdbm-dev libnss3-dev libssl-dev \
+#     libreadline-dev libffi-dev libsqlite3-dev libbz2-dev liblzma-dev
 
 ################################
 #        Install conda         #
 ################################
 # can be changed to py39_23.5.2-0 or py38_23.5.2-0
-ENV CONDA_VERSION=py311_23.5.2-0
+ENV CONDA_VERSION=py310_23.5.2-0
 RUN curl https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -o ./miniconda.sh && \
     bash miniconda.sh -b -p /opt/conda && \
     /opt/conda/bin/conda init bash&& \
@@ -75,8 +76,8 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
 # RUN ${PIP_INSTALL} 'torch==1.13.1' 'torchvision==0.14.1' 'torchaudio==0.13.1' -f https://mirror.sjtu.edu.cn/pytorch-wheels/cu117/       
 ############################  pip install  ##################################
 # RUN ${PIP_INSTALL} torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
-###########################   conda install (recommd)  ################################
-RUN conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c nvidia -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
+###########################   conda install (recommend)  ################################
+RUN conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 pytorch-cuda=11.7 -c nvidia -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
 
 ################################
 #        python packages       #
