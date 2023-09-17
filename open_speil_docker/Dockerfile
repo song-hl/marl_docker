@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-runtime
+FROM nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu20.04
 ################################
 # Install apt-get Requirements #
 ################################
@@ -19,12 +19,25 @@ RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
     openssh-client openssh-server openssl net-tools locales iputils-ping
 
 ################################
+#        Install conda         #
+################################
+# can be changed to py39_23.5.2-0 or py38_23.5.2-0
+ENV CONDA_VERSION=py310_23.5.2-0
+RUN curl https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -o ./miniconda.sh && \
+    bash miniconda.sh -b -p /opt/conda && \
+    /opt/conda/bin/conda init bash&& \
+    rm miniconda.sh
+ENV PATH /opt/conda/bin:${PATH}
+
+################################
 #  change conda & pip sources  #
 ################################
 COPY ./.condarc /root/.condarc
+
 RUN ${PIP_INSTALL} -i https://pypi.tuna.tsinghua.edu.cn/simple pip -U && \
-    pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
-    conda update -n base conda -y
+    pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+RUN conda update -n base --all -y && \
+    conda clean -ya
 
 ################################
 #        Set Timezone          #
@@ -40,17 +53,46 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
 
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+#############################################################################
+#                           pytorch                                        #
+# 对应版本 ：  https://pytorch.org/get-started/previous-versions/           #
+
+###########################     pip 镜像     ################################
+# 上交镜像：  直接将 PyTorch 安装指引 中的 https://download.pytorch.org/whl   #  
+#            替换为 https://mirror.sjtu.edu.cn/pytorch-wheels 即可。        #
+#  使用镜像问题 problem : torch.version.cuda 与 系统cuda版本不同，                   # 
+# RUN ${PIP_INSTALL} 'torch==1.13.1' 'torchvision==0.14.1' 'torchaudio==0.13.1' -f https://mirror.sjtu.edu.cn/pytorch-wheels/cu117/       
+############################  pip install  ##################################
+RUN ${PIP_INSTALL} torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cu117
+###########################   conda install (recommend)  ################################
+# RUN conda install pytorch==1.13.1 torchvision==0.14.1 torchaudio==0.13.1 pytorch-cuda=11.7 -c nvidia -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/ && \
+#     conda clean -ya
+
 ################################
 #        python packages       #
 ################################
+### use pip install ###
 RUN ${PIP_INSTALL} psutil wheel nvitop wandb hydra-core omegaconf
+### use conda install ###
+# 定义要安装的软件包列表y
+# ARG CONDA_PACKAGES="psutil wheel nvitop wandb hydra-core omegaconf"
+# 使用Conda尝试安装软件包
+# RUN conda install -y $CONDA_PACKAGES || true && \ 
+#     conda clean -ya
+# 使用Pip安装找不到的软件包
+# RUN for package in $CONDA_PACKAGES; do \
+#     conda list | grep -q $package || pip install $package; \
+#     done
 
 ################################
 #        requirement.txt       #
 ################################
 COPY ./requirements.txt /tmp/requirements.txt
+### use pip install ###
 RUN ${PIP_INSTALL} -r /tmp/requirements.txt
-
+### use conda install ###
+# RUN while read requirement; do conda install --yes $requirement || ${PIP_INSTALL} $requirement; done < /tmp/requirements.txt && \
+#     conda clean -ya
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ################################

@@ -84,14 +84,28 @@ RUN ${PIP_INSTALL} torch==1.13.1+cu117 torchvision==0.14.1+cu117 torchaudio==0.1
 ################################
 #        python packages       #
 ################################
+### use pip install ###
 # RUN ${PIP_INSTALL} psutil wheel nvitop wandb hydra-core omegaconf
+### use conda install ###
+# 定义要安装的软件包列表y
+# ARG CONDA_PACKAGES="psutil wheel nvitop wandb hydra-core omegaconf"
+# 使用Conda尝试安装软件包
+# RUN conda install -y $CONDA_PACKAGES || true && \ 
+#     conda clean -ya
+# 使用Pip安装找不到的软件包
+# RUN for package in $CONDA_PACKAGES; do \
+#     conda list | grep -q $package || pip install $package; \
+#     done
 
 ################################
 #        requirement.txt       #
 ################################
 # COPY ./requirements.txt /tmp/requirements.txt
+### use pip install ###
 # RUN ${PIP_INSTALL} -r /tmp/requirements.txt
-
+### use conda install ###
+# RUN while read requirement; do conda install --yes $requirement || ${PIP_INSTALL} $requirement; done < /tmp/requirements.txt && \
+#     conda clean -ya
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 ################################
