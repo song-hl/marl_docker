@@ -23,8 +23,9 @@ RUN DEBIAN_FRONTEND=noninteractive $APT_INSTALL \
 ################################
 COPY ./.condarc /root/.condarc
 RUN ${PIP_INSTALL} -i https://pypi.tuna.tsinghua.edu.cn/simple pip -U && \
-    pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple && \
-    conda update -n base conda -y
+    pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+RUN conda update -n base --all -y && \
+    conda clean -ya
 
 ################################
 #        Set Timezone          #
